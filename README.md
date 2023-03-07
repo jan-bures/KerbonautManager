@@ -1,4 +1,4 @@
-# KerbonautManager
+# Kerbonaut Manager
 
 A mod that adds a window to the VAB where you can create new kerbonauts or rename/remove your existing ones. It also prevents your kerbals from disappearing when you recover their vessel, and it stops the VAB from generating random kerbals whenever their count drops below a certain number.
 
