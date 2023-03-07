@@ -2,6 +2,8 @@
 
 A mod that adds a window to the VAB where you can create new kerbonauts or rename/remove your existing ones. It also prevents your kerbals from disappearing when you recover their vessel, and it stops the VAB from generating random kerbals whenever their count drops below a certain number.
 
+![Kerbonaut Manager](https://spacedock.info/content/munix_103761/Kerbonaut_Manager/Kerbonaut_Manager-1678214287.png)
+
 ## How to use
 When you open the VAB Kerbal Manager, the mod window will open automatically next to it. By default you will see the option to create a Kerbonaut - either fill in your desired Kerbal name, or leave it empty for a random one to be generated. Right clicking on a kerbal in the Kerbal Manager window will open them in the mod window to allow renaming or deleting.
 
