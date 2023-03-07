@@ -68,14 +68,14 @@ namespace KerbonautManager
             harmony.PatchAll(typeof(KerbonautManagerPlugin));
             harmony.PatchAll(typeof(KerbalsVanishingPatch));
             
-            Texture2D buttonTexture = AssetManager.GetAsset<Texture2D>($"{SpaceWarpMetadata.ModID}/images/icon.png");
+            var buttonTexture = AssetManager.GetAsset<Texture2D>($"{SpaceWarpMetadata.ModID}/images/icon.png");
             Appbar.RegisterOABAppButton("Kerbonaut Manager", ToolbarButtonID, buttonTexture, isOpen =>
             {
                 if (!isOpen)
                 {
                     KerbonautManagerWindow.SetSelectedKerbal(null);
                 }
-                GameObject.Find("BTN-ExampleMod")?.GetComponent<UIValue_WriteBool_Toggle>()?.SetValue(isOpen);
+                GameObject.Find(ToolbarButtonID)?.GetComponent<UIValue_WriteBool_Toggle>()?.SetValue(isOpen);
                 KerbonautManagerWindow.IsOpen = isOpen;
             });
             
@@ -133,14 +133,12 @@ namespace KerbonautManager
         [HarmonyPrefix]
         public static void KerbalManager_OnHideWindow()
         {
-            _instance.kerbalPanels.Clear();
-            _instance.kerbals.Clear();
+            refreshPanels();
             KerbonautManagerWindow.IsOpen = false;
         }
 
-        [HarmonyPatch(typeof(KerbalManager), "OnDropdownASelection")]
-        [HarmonyPatch(typeof(KerbalManager), "OnDropdownBSelection")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(KerbalManager), "ReloadLocations")]
+        [HarmonyPostfix]
         public static void DropDownUpdate()
         {
             refreshPanels();
@@ -155,26 +153,23 @@ namespace KerbonautManager
             _instance.kerbalPanels.Clear();
             _instance.kerbals.Clear();
 
-            var locations = new[] {
-                GameObject.Find(LocationAPath),
-                GameObject.Find(LocationBPath)
-            };
+            var locationA = GameObject.Find(LocationAPath);
+            var locationB = GameObject.Find(LocationBPath);
 
-            foreach (var location in locations)
-            {
-                if (location.transform.childCount <= 1)
-                {
-                    continue;
-                }
-                
-                var panel = location.transform.GetChild(1).gameObject;
-                _instance.kerbalPanels.Add(panel);
-                addPanelKerbals(panel);
-            }
+            addPanelKerbals(locationA);
+            addPanelKerbals(locationB);
         }
         
-        private static void addPanelKerbals(GameObject panel)
+        private static void addPanelKerbals(GameObject location)
         {
+            if (location.transform.childCount <= 1)
+            {
+                return;
+            }
+                
+            var panel = location.transform.GetChild(1).gameObject;
+            _instance.kerbalPanels.Add(panel);
+            
             var kerbalList = panel.GetComponent<ContextBindRoot>().BoundParentContext
                 .Lists["kerbalSlotList"].Data;
             var guids = (
