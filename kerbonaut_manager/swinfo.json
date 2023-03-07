@@ -1,0 +1,13 @@
+{
+    "mod_id": "kerbonaut_manager",
+    "author": "munix",
+    "name": "Kerbonaut Manager",
+    "description": "Rename and create kerbals",
+    "source": "https://github.com/jan-bures/KerbonautManager",
+    "version": "0.1.0",
+    "dependencies": [],
+    "ksp2_version": {
+        "min": "0.1.0",
+        "max": "*"
+    }
+}
