@@ -25,49 +25,52 @@ namespace KerbonautManager
 
         #region Internal constants
 
-        private const string LocationAPath = "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/UIPanel/GRP-Body/KerbalManager_LocationA/Scroll View/Viewport/LocationAPanels/";
-        private const string LocationBPath = "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/UIPanel/GRP-Body/KerbalManager_LocationB/Scroll View/Viewport/LocationBPanels/";
+        private const string LocationAPath =
+            "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/UIPanel/GRP-Body/KerbalManager_LocationA/Scroll View/Viewport/LocationAPanels/";
+
+        private const string LocationBPath =
+            "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/UIPanel/GRP-Body/KerbalManager_LocationB/Scroll View/Viewport/LocationBPanels/";
 
         internal const string ToolbarButtonID = "BTN-KerbonautManagerOAB";
-        
+
         #endregion
 
         #region State
 
         private static KerbonautManagerPlugin _instance;
-        
-        private bool loaded;
-        private List<GameObject> kerbalPanels = new();
-        private readonly List<List<IGGuid>> kerbals = new();
-        
+
+        private bool _loaded;
+        private List<GameObject> _kerbalPanels = new();
+        private readonly List<List<IGGuid>> _kerbals = new();
+
         #endregion
 
         #region External objects
 
-        private Camera mainCamera;
+        private Camera _mainCamera;
 
         #endregion
-        
-        
+
+
         #region Lifecycle
 
         public override void OnInitialized()
         {
             base.OnInitialized();
 
-            if (loaded)
+            if (_loaded)
             {
                 Destroy(this);
             }
 
-            loaded = true;
+            _loaded = true;
             _instance = this;
-            mainCamera = Camera.main;
+            _mainCamera = Camera.main;
 
             var harmony = new Harmony(ModGuid);
             harmony.PatchAll(typeof(KerbonautManagerPlugin));
             harmony.PatchAll(typeof(KerbalsVanishingPatch));
-            
+
             var buttonTexture = AssetManager.GetAsset<Texture2D>($"{SpaceWarpMetadata.ModID}/images/icon.png");
             Appbar.RegisterOABAppButton("Kerbonaut Manager", ToolbarButtonID, buttonTexture, isOpen =>
             {
@@ -75,43 +78,45 @@ namespace KerbonautManager
                 {
                     KerbonautManagerWindow.SetSelectedKerbal(null);
                 }
+
                 GameObject.Find(ToolbarButtonID)?.GetComponent<UIValue_WriteBool_Toggle>()?.SetValue(isOpen);
                 KerbonautManagerWindow.IsOpen = isOpen;
             });
-            
+
             Logger.LogInfo("KerbonautManager is initialized.");
         }
-        
+
         private void LateUpdate()
         {
-            if (!kerbalPanels.Any() || !Input.GetMouseButtonUp(1))
+            if (!Input.GetMouseButtonDown(1) || !_kerbalPanels.Any())
             {
                 return;
             }
 
-            for (var panelIndex = 0; panelIndex < kerbalPanels.Count(); panelIndex++)
+            for (var panelIndex = 0; panelIndex < _kerbalPanels.Count(); panelIndex++)
             {
-                var kerbalButtons = kerbalPanels[panelIndex].transform.GetChild(4);
+                var kerbalButtons = _kerbalPanels[panelIndex].transform.GetChild(4);
                 for (var kerbalIndex = 0; kerbalIndex < kerbalButtons.childCount; kerbalIndex++)
                 {
                     var rectTransform = kerbalButtons.GetChild(kerbalIndex) as RectTransform;
                     RectTransformUtility.ScreenPointToLocalPointInRectangle(
                         rectTransform,
                         Input.mousePosition,
-                        mainCamera,
+                        _mainCamera,
                         out var localPoint
                     );
                     if (!rectTransform!.rect.Contains(localPoint))
                     {
                         continue;
                     }
+
                     KerbonautManagerWindow.IsOpen = true;
-                    KerbonautManagerWindow.SetSelectedKerbal(kerbals[panelIndex][kerbalIndex]);
+                    KerbonautManagerWindow.SetSelectedKerbal(_kerbals[panelIndex][kerbalIndex]);
                     return;
                 }
             }
         }
-        
+
         private void OnGUI()
         {
             KerbonautManagerWindow.UpdateGUI();
@@ -125,7 +130,7 @@ namespace KerbonautManager
         [HarmonyPostfix]
         public static void KerbalManager_OnShowWindow()
         {
-            refreshPanels();
+            RefreshPanels();
             KerbonautManagerWindow.IsOpen = true;
         }
 
@@ -133,7 +138,7 @@ namespace KerbonautManager
         [HarmonyPrefix]
         public static void KerbalManager_OnHideWindow()
         {
-            refreshPanels();
+            RefreshPanels();
             KerbonautManagerWindow.IsOpen = false;
         }
 
@@ -141,35 +146,35 @@ namespace KerbonautManager
         [HarmonyPostfix]
         public static void DropDownUpdate()
         {
-            refreshPanels();
+            RefreshPanels();
         }
 
         #endregion
 
         #region State update methods
-        
-        private static void refreshPanels()
+
+        private static void RefreshPanels()
         {
-            _instance.kerbalPanels.Clear();
-            _instance.kerbals.Clear();
+            _instance._kerbalPanels.Clear();
+            _instance._kerbals.Clear();
 
             var locationA = GameObject.Find(LocationAPath);
             var locationB = GameObject.Find(LocationBPath);
 
-            addPanelKerbals(locationA);
-            addPanelKerbals(locationB);
+            AddPanelKerbals(locationA);
+            AddPanelKerbals(locationB);
         }
-        
-        private static void addPanelKerbals(GameObject location)
+
+        private static void AddPanelKerbals(GameObject location)
         {
             if (location.transform.childCount <= 1)
             {
                 return;
             }
-                
+
             var panel = location.transform.GetChild(1).gameObject;
-            _instance.kerbalPanels.Add(panel);
-            
+            _instance._kerbalPanels.Add(panel);
+
             var kerbalList = panel.GetComponent<ContextBindRoot>().BoundParentContext
                 .Lists["kerbalSlotList"].Data;
             var guids = (
@@ -178,7 +183,7 @@ namespace KerbonautManager
                 select (IGGuid)kerbal.Properties["kerbalId"].GetObject()
             ).ToList();
 
-            _instance.kerbals.Add(guids);
+            _instance._kerbals.Add(guids);
         }
 
         #endregion
