@@ -50,7 +50,7 @@ public static class KerbonautManagerWindow
 
     private static KerbalInfo _activeKerbalInfo;
     private static string _kerbalName;
-    private static string _kerbalSurname;
+    private static string _kerbalSurname = "Kerman";
 
     public static void UpdateGUI()
     {
