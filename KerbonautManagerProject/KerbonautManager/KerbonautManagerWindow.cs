@@ -20,13 +20,15 @@ public static class KerbonautManagerWindow
         WindowHeight
     );
 
-    private const float CloseButtonSize = 16;
-    private const float CloseButtonOffset = 3;
-
     private const string KerbalAlreadyExistsKey = "KerbonautManager/NotificationEvent/KerbalAlreadyExists";
     private const string FirstNameRequiredKey = "KerbonautManager/NotificationEvent/FirstNameRequired";
     private const string LastNameRequiredKey = "KerbonautManager/NotificationEvent/LastNameRequired";
 
+    private const string DefaultSurname = "Kerman";
+
+    private const float CloseButtonSize = 16;
+    private const float CloseButtonOffset = 3;
+    
     private static Rect CloseButtonRect => new(
         _windowRect.width - CloseButtonSize - CloseButtonOffset,
         CloseButtonOffset,
@@ -50,7 +52,7 @@ public static class KerbonautManagerWindow
 
     private static KerbalInfo _activeKerbalInfo;
     private static string _kerbalName;
-    private static string _kerbalSurname = "Kerman";
+    private static string _kerbalSurname = DefaultSurname;
 
     public static void UpdateGUI()
     {
@@ -263,13 +265,13 @@ public static class KerbonautManagerWindow
 
         _activeKerbalInfo = selectedKerbalInfo;
         _kerbalName = selectedKerbalInfo != null ? _activeKerbalInfo.Attributes.FirstName : "";
-        _kerbalSurname = selectedKerbalInfo != null ? _activeKerbalInfo.Attributes.Surname : "";
+        _kerbalSurname = selectedKerbalInfo != null ? _activeKerbalInfo.Attributes.Surname : DefaultSurname;
     }
 
     private static void SetKerbalEmpty()
     {
         _activeKerbalInfo = null;
         _kerbalName = null;
-        _kerbalSurname = "Kerman";
+        _kerbalSurname = DefaultSurname;
     }
 }
