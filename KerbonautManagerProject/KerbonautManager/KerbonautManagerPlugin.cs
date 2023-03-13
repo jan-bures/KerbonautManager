@@ -1,5 +1,6 @@
 using BepInEx;
 using HarmonyLib;
+using KSP.Game;
 using KSP.Sim.impl;
 using KSP.UI;
 using KSP.UI.Binding;
@@ -88,7 +89,8 @@ namespace KerbonautManager
 
         private void LateUpdate()
         {
-            if (!Input.GetMouseButtonDown(1) || !_kerbalPanels.Any())
+            var isVab = Game?.GlobalGameState?.GetState() == GameState.VehicleAssemblyBuilder;
+            if (!Input.GetMouseButtonDown(1) || !_kerbalPanels.Any() || !isVab)
             {
                 return;
             }
