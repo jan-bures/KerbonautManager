@@ -1,10 +1,13 @@
 ﻿using HarmonyLib;
+using KSP.Game;
 using KSP.Sim.impl;
 
 namespace KerbonautManager;
 
 public class KerbalsVanishingPatch
 {
+    private static bool _isNewCampaign;
+    
     [HarmonyPatch(typeof(VesselComponent), nameof(VesselComponent.RecoverVessel))]
     [HarmonyPrefix]
     public static void VesselComponent_RecoverVessel(VesselComponent __instance, IGGuid recoveryLocation)
@@ -18,10 +21,27 @@ public class KerbalsVanishingPatch
         }
     }
 
+    [HarmonyPatch(typeof(CreateCampaignMenu), "CreateNewCampaign")]
+    [HarmonyPrefix]
+    public static void CreateCampaignMenu_CreateNewCampaign()
+    {
+        _isNewCampaign = true;
+    }
+
     [HarmonyPatch(typeof(PopulationComponent), nameof(PopulationComponent.OnUpdate))]
     [HarmonyPrefix]
-    public static bool PopulationComponent_OnUpdate()
+    public static bool PopulationComponent_OnUpdate_Prefix()
     {
-        return false;
+        return _isNewCampaign;
+    }
+    
+    [HarmonyPatch(typeof(PopulationComponent), nameof(PopulationComponent.OnUpdate))]
+    [HarmonyPostfix]
+    public static void PopulationComponent_OnUpdate_Postfix(int ____currentKerbalCountTotal, int ____refillKerbalLimit)
+    {
+        if (_isNewCampaign && ____currentKerbalCountTotal >= ____refillKerbalLimit)
+        {
+            _isNewCampaign = false;
+        }
     }
 }
