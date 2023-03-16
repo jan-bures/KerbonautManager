@@ -1,3 +1,4 @@
+using System.Collections;
 using BepInEx;
 using HarmonyLib;
 using KSP.Game;
@@ -16,11 +17,17 @@ namespace KerbonautManager
     [BepInDependency(SpaceWarpPlugin.ModGuid, SpaceWarpPlugin.ModVer)]
     public class KerbonautManagerPlugin : BaseSpaceWarpPlugin
     {
+        private enum Panel
+        {
+            A,
+            B
+        }
+
         #region Metadata
 
         public const string ModGuid = "com.munix.KerbonautManager";
         public const string ModName = "Kerbonaut Manager";
-        public const string ModVer = "0.1.0";
+        public const string ModVer = "0.2.1";
 
         #endregion
 
@@ -41,8 +48,8 @@ namespace KerbonautManager
         private static KerbonautManagerPlugin _instance;
 
         private bool _loaded;
-        private List<GameObject> _kerbalPanels = new();
-        private readonly List<List<IGGuid>> _kerbals = new();
+        private Dictionary<Panel, GameObject> _kerbalPanels = new() { { Panel.A, null }, { Panel.B, null } };
+        private readonly Dictionary<Panel, List<IGGuid>> _kerbals = new();
 
         #endregion
 
@@ -89,39 +96,51 @@ namespace KerbonautManager
 
         private void LateUpdate()
         {
-            var isVab = Game?.GlobalGameState?.GetState() == GameState.VehicleAssemblyBuilder;
-            if (!Input.GetMouseButtonDown(1) || !_kerbalPanels.Any() || !isVab)
+            if (!Input.GetMouseButtonDown(1) || !IsInVab() || (!_kerbalPanels[Panel.A] && !_kerbalPanels[Panel.B]))
             {
                 return;
             }
 
-            for (var panelIndex = 0; panelIndex < _kerbalPanels.Count(); panelIndex++)
-            {
-                var kerbalButtons = _kerbalPanels[panelIndex].transform.GetChild(4);
-                for (var kerbalIndex = 0; kerbalIndex < kerbalButtons.childCount; kerbalIndex++)
-                {
-                    var rectTransform = kerbalButtons.GetChild(kerbalIndex) as RectTransform;
-                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        rectTransform,
-                        Input.mousePosition,
-                        _mainCamera,
-                        out var localPoint
-                    );
-                    if (!rectTransform!.rect.Contains(localPoint))
-                    {
-                        continue;
-                    }
+            ProcessPanel(Panel.A);
+            ProcessPanel(Panel.B);
+        }
 
-                    KerbonautManagerWindow.IsOpen = true;
-                    KerbonautManagerWindow.SetSelectedKerbal(_kerbals[panelIndex][kerbalIndex]);
-                    return;
+        private void ProcessPanel(Panel panel)
+        {
+            if (!_kerbalPanels[panel])
+            {
+                return;
+            }
+
+            var kerbalButtons = _kerbalPanels[panel].transform.GetChild(4);
+            for (var kerbalIndex = 0; kerbalIndex < kerbalButtons.childCount; kerbalIndex++)
+            {
+                var rectTransform = kerbalButtons.GetChild(kerbalIndex) as RectTransform;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    rectTransform,
+                    Input.mousePosition,
+                    _mainCamera,
+                    out var localPoint
+                );
+                if (!rectTransform!.rect.Contains(localPoint))
+                {
+                    continue;
                 }
+
+                KerbonautManagerWindow.IsOpen = true;
+                KerbonautManagerWindow.SetSelectedKerbal(_kerbals[panel][kerbalIndex]);
+                return;
             }
         }
 
         private void OnGUI()
         {
             KerbonautManagerWindow.UpdateGUI();
+        }
+
+        private static bool IsInVab()
+        {
+            return Game && Game.GlobalGameState?.GetState() == GameState.VehicleAssemblyBuilder;
         }
 
         #endregion
@@ -132,7 +151,13 @@ namespace KerbonautManager
         [HarmonyPostfix]
         public static void KerbalManager_OnShowWindow()
         {
-            RefreshPanels();
+            if (!IsInVab())
+            {
+                return;
+            }
+
+            RefreshPanel(Panel.A);
+            RefreshPanel(Panel.B);
             KerbonautManagerWindow.IsOpen = true;
         }
 
@@ -140,44 +165,76 @@ namespace KerbonautManager
         [HarmonyPrefix]
         public static void KerbalManager_OnHideWindow()
         {
-            RefreshPanels();
+            if (!IsInVab())
+            {
+                return;
+            }
+
+            RefreshPanel(Panel.A);
+            RefreshPanel(Panel.B);
             KerbonautManagerWindow.IsOpen = false;
         }
 
         [HarmonyPatch(typeof(KerbalManager), "ReloadLocations")]
         [HarmonyPostfix]
-        public static void DropDownUpdate()
+        public static void KerbalManager_ReloadLocations()
         {
-            RefreshPanels();
+            if (!IsInVab())
+            {
+                return;
+            }
+
+            RefreshPanel(Panel.A);
+            RefreshPanel(Panel.B);
+        }
+
+        [HarmonyPatch(typeof(KerbalManager), "OnDropdownASelection")]
+        [HarmonyPostfix]
+        public static void KerbalManager_OnDropdownASelection()
+        {
+            if (!IsInVab())
+            {
+                return;
+            }
+
+            RefreshPanel(Panel.A);
+        }
+
+        [HarmonyPatch(typeof(KerbalManager), "OnDropdownBSelection")]
+        [HarmonyPostfix]
+        public static void KerbalManager_OnDropdownBSelection()
+        {
+            if (!IsInVab())
+            {
+                return;
+            }
+
+            RefreshPanel(Panel.B);
         }
 
         #endregion
 
         #region State update methods
 
-        private static void RefreshPanels()
+        private static void RefreshPanel(Panel panel)
         {
-            _instance._kerbalPanels.Clear();
-            _instance._kerbals.Clear();
+            _instance._kerbalPanels[panel] = null;
+            _instance._kerbals[panel] = null;
 
-            var locationA = GameObject.Find(LocationAPath);
-            var locationB = GameObject.Find(LocationBPath);
-
-            AddPanelKerbals(locationA);
-            AddPanelKerbals(locationB);
+            AddPanelKerbals(panel, GameObject.Find(panel == Panel.A ? LocationAPath : LocationBPath));
         }
 
-        private static void AddPanelKerbals(GameObject location)
+        private static void AddPanelKerbals(Panel panel, GameObject location)
         {
             if (location.transform.childCount <= 1)
             {
                 return;
             }
 
-            var panel = location.transform.GetChild(1).gameObject;
-            _instance._kerbalPanels.Add(panel);
+            var panelObject = location.transform.GetChild(1).gameObject;
+            _instance._kerbalPanels[panel] = panelObject;
 
-            var kerbalList = panel.GetComponent<ContextBindRoot>().BoundParentContext
+            var kerbalList = panelObject.GetComponent<ContextBindRoot>().BoundParentContext
                 .Lists["kerbalSlotList"].Data;
             var guids = (
                 from kerbal in kerbalList
@@ -185,7 +242,7 @@ namespace KerbonautManager
                 select (IGGuid)kerbal.Properties["kerbalId"].GetObject()
             ).ToList();
 
-            _instance._kerbals.Add(guids);
+            _instance._kerbals[panel] = guids;
         }
 
         #endregion

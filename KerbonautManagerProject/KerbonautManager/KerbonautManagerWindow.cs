@@ -28,7 +28,7 @@ public static class KerbonautManagerWindow
 
     private const float CloseButtonSize = 16;
     private const float CloseButtonOffset = 3;
-    
+
     private static Rect CloseButtonRect => new(
         _windowRect.width - CloseButtonSize - CloseButtonOffset,
         CloseButtonOffset,
@@ -152,7 +152,7 @@ public static class KerbonautManagerWindow
 
     private static void OnSaveKerbal()
     {
-        if (!IsKerbalInvalid(_kerbalName, _kerbalSurname))
+        if (!IsKerbalValid(_kerbalName, _kerbalSurname))
         {
             return;
         }
@@ -172,7 +172,7 @@ public static class KerbonautManagerWindow
             return;
         }
 
-        if (!IsKerbalInvalid(_kerbalName, _kerbalSurname))
+        if (!IsKerbalValid(_kerbalName, _kerbalSurname))
         {
             return;
         }
@@ -204,7 +204,7 @@ public static class KerbonautManagerWindow
         }
     }
 
-    private static bool IsKerbalInvalid(string name, string surname)
+    private static bool IsKerbalValid(string name, string surname)
     {
         if (string.IsNullOrEmpty(name))
         {
