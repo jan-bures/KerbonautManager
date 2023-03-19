@@ -1,4 +1,4 @@
-﻿Key,Type,Desc,English[en]
+﻿Key,Type,Desc,English
 KerbonautManager/NotificationEvent/KerbalAlreadyExists,Text,,Kerbal with this name already exists
 KerbonautManager/NotificationEvent/FirstNameRequired,Text,,First name is required
 KerbonautManager/NotificationEvent/LastNameRequired,Text,,Last name is required
