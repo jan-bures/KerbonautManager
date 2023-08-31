@@ -5,6 +5,7 @@
     "name": "Kerbonaut Manager",
     "description": "Rename and create kerbals",
     "source": "https://github.com/jan-bures/KerbonautManager",
+    "version_check": "https://raw.githubusercontent.com/jan-bures/KerbonautManager/main/kerbonaut_manager/swinfo.json",
     "version": "0.2.2",
     "dependencies": [
         {
