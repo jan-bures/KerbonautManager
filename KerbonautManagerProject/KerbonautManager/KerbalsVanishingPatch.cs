@@ -1,13 +1,14 @@
 ﻿using HarmonyLib;
 using KSP.Game;
 using KSP.Sim.impl;
+// ReSharper disable InconsistentNaming
 
 namespace KerbonautManager;
 
 public class KerbalsVanishingPatch
 {
     private static bool _isNewCampaign;
-    
+
     [HarmonyPatch(typeof(VesselComponent), nameof(VesselComponent.RecoverVessel))]
     [HarmonyPrefix]
     public static void VesselComponent_RecoverVessel(VesselComponent __instance, IGGuid recoveryLocation)
@@ -34,7 +35,7 @@ public class KerbalsVanishingPatch
     {
         return _isNewCampaign;
     }
-    
+
     [HarmonyPatch(typeof(PopulationComponent), nameof(PopulationComponent.OnUpdate))]
     [HarmonyPostfix]
     public static void PopulationComponent_OnUpdate_Postfix(int ____currentKerbalCountTotal, int ____refillKerbalLimit)

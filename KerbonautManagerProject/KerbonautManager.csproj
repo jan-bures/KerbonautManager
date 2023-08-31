@@ -6,17 +6,16 @@
     <LangVersion>11</LangVersion>
     <ImplicitUsings>true</ImplicitUsings>
     <Version>0.2.1</Version>
+    <RestoreAdditionalPackageSources>
+      https://nuget.spacewarp.org/v3/index.json
+    </RestoreAdditionalPackageSources>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\external_dlls\Assembly-CSharp.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.BaseLib" Version="5.4.21" />
     <PackageReference Include="HarmonyX" Version="2.10.1" />
-    <PackageReference Include="SpaceWarp" Version="0.4.0" />
-    <PackageReference Include="UnityEngine.Modules" Version="2020.3.33" IncludeAssets="compile" />
+    <PackageReference Include="SpaceWarp" Version="1.4.0" />
+    <PackageReference Include="KerbalSpaceProgram2.GameLibs" Version="0.1.4" />
+    <PackageReference Include="UnityEngine.Modules" Version="2020.3.33.1" IncludeAssets="compile" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy /y &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\dist\BepInEx\plugins\kerbonaut_manager\&quot;&#xA;xcopy /y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;$(ProjectDir)..\dist\BepInEx\plugins\kerbonaut_manager\&quot;&#xA;xcopy /y &quot;$(ProjectDir)..\LICENSE&quot; &quot;$(ProjectDir)..\dist\BepInEx\plugins\kerbonaut_manager\&quot;&#xA;echo f | xcopy /y &quot;$(ProjectDir)..\README.md&quot; &quot;$(ProjectDir)..\dist\BepInEx\plugins\kerbonaut_manager\README.txt&quot;&#xA;echo d | xcopy /y /s &quot;$(ProjectDir)..\kerbonaut_manager\&quot; &quot;$(ProjectDir)..\dist\BepInEx\plugins\kerbonaut_manager\&quot;" />

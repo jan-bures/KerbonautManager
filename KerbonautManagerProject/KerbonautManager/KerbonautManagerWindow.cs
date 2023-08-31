@@ -56,7 +56,9 @@ public static class KerbonautManagerWindow
 
     public static void UpdateGUI()
     {
+        #pragma warning disable CS0618
         GUI.skin = Skins.ConsoleSkin;
+        #pragma warning restore CS0618
 
         if (!IsOpen)
         {
