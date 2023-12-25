@@ -27,17 +27,17 @@ public class KerbonautManagerPlugin : BaseSpaceWarpPlugin
 
     [PublicAPI] public const string ModGuid = "kerbonaut_manager";
     [PublicAPI] public const string ModName = "Kerbonaut Manager";
-    [PublicAPI] public const string ModVer = "0.2.2";
+    [PublicAPI] public const string ModVer = "0.2.3";
 
     #endregion
 
     #region Internal constants
 
     private const string LocationAPath =
-        "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/UIPanel/GRP-Body/KerbalManager_LocationA/Scroll View/Viewport/LocationAPanels/";
+        "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/Window-App/GRP-Body/KerbalManager_LocationA/Scroll View/Viewport/LocationAPanels/";
 
     private const string LocationBPath =
-        "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/UIPanel/GRP-Body/KerbalManager_LocationB/Scroll View/Viewport/LocationBPanels/";
+        "GameManager/Default Game Instance(Clone)/UI Manager(Clone)/Popup Canvas/KerbalManager(Clone)/KSP2UIWindow/Root/Window-App/GRP-Body/KerbalManager_LocationB/Scroll View/Viewport/LocationBPanels/";
 
     internal const string ToolbarButtonID = "BTN-KerbonautManagerOAB";
 
@@ -77,7 +77,6 @@ public class KerbonautManagerPlugin : BaseSpaceWarpPlugin
 
         var harmony = new Harmony(ModGuid);
         harmony.PatchAll(typeof(KerbonautManagerPlugin));
-        harmony.PatchAll(typeof(KerbalsVanishingPatch));
 
         var buttonTexture = AssetManager.GetAsset<Texture2D>($"{SpaceWarpMetadata.ModID}/images/icon.png");
         Appbar.RegisterOABAppButton("Kerbonaut Manager", ToolbarButtonID, buttonTexture, isOpen =>

@@ -1,6 +1,7 @@
 ﻿using KSP.Game;
 using KSP.Messages;
 using KSP.Sim.impl;
+using KSP.UI;
 using KSP.UI.Binding;
 using SpaceWarp.API.UI;
 using UnityEngine;
@@ -54,11 +55,17 @@ public static class KerbonautManagerWindow
     private static string _kerbalName;
     private static string _kerbalSurname = DefaultSurname;
 
+    // Related classes
+    private static KerbalRosterManager KerbalRosterManager =>
+        GameManager.Instance.Game.SessionManager.KerbalRosterManager;
+
+    private static KerbalManager KerbalManager => GameManager.Instance.Game.KerbalManager;
+
     public static void UpdateGUI()
     {
-        #pragma warning disable CS0618
+#pragma warning disable CS0618
         GUI.skin = Skins.ConsoleSkin;
-        #pragma warning restore CS0618
+#pragma warning restore CS0618
 
         if (!IsOpen)
         {
@@ -166,10 +173,9 @@ public static class KerbonautManagerWindow
 
     private static void OnCreateKerbal()
     {
-        var rosterManager = GameManager.Instance.Game.SessionManager.KerbalRosterManager;
         if (string.IsNullOrEmpty(_kerbalName))
         {
-            rosterManager.CreateKerbal();
+            KerbalRosterManager.CreateKerbal();
             SetSelectedKerbal(null);
             return;
         }
@@ -179,7 +185,9 @@ public static class KerbonautManagerWindow
             return;
         }
 
-        var createdKerbal = rosterManager.CreateKerbalByName(_kerbalName);
+        var createdKerbal = KerbalRosterManager.CreateKerbalByName(
+            string.Join("_", $"{_kerbalName} {_kerbalSurname}".Split(' '))
+        );
         UpdateKerbal(createdKerbal, _kerbalName, _kerbalSurname);
 
         SetSelectedKerbal(null);
@@ -187,7 +195,8 @@ public static class KerbonautManagerWindow
 
     private static void OnDeleteKerbal()
     {
-        GameManager.Instance.Game.SessionManager.KerbalRosterManager.DestroyKerbal(_activeKerbalInfo.Id);
+        KerbalRosterManager.DestroyKerbal(_activeKerbalInfo.Id);
+        KerbalManager._isDirty = true;
         SetSelectedKerbal(null);
     }
 
@@ -199,11 +208,16 @@ public static class KerbonautManagerWindow
             surname
         );
         kerbalInfo.Attributes = newAttrs;
+
+        KerbalRosterManager.GenerateKerbalPortrait(kerbalInfo);
+
         if (GameManager.Instance.Game.Messages.TryCreateMessage(out KerbalAddedToRoster msg))
         {
             msg.Kerbal = kerbalInfo;
             GameManager.Instance.Game.Messages.Publish(msg);
         }
+
+        KerbalManager._isDirty = true;
     }
 
     private static bool IsKerbalValid(string name, string surname)
@@ -228,8 +242,7 @@ public static class KerbonautManagerWindow
             return false;
         }
 
-        var kerbalExists = GameManager.Instance.Game.SessionManager.KerbalRosterManager
-            .KerbalExists($"{name} {surname}");
+        var kerbalExists = KerbalRosterManager.KerbalExists($"{name} {surname}");
 
         if (kerbalExists)
         {
@@ -260,10 +273,7 @@ public static class KerbonautManagerWindow
             return;
         }
 
-        GameManager.Instance.Game.SessionManager.KerbalRosterManager.TryGetKerbalByID(
-            selectedKerbal!.Value,
-            out var selectedKerbalInfo
-        );
+        KerbalRosterManager.TryGetKerbalByID(selectedKerbal!.Value, out var selectedKerbalInfo);
 
         _activeKerbalInfo = selectedKerbalInfo;
         _kerbalName = selectedKerbalInfo != null ? _activeKerbalInfo.Attributes.FirstName : "";
